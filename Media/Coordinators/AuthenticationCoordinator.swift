@@ -23,6 +23,7 @@ class AuthenticationCoordinator: Coordinator {
         let loginVC = LoginViewController.initFromStoryboard()
         let viewModel = LoginViewModel(loginService: AuthenticationAPI(baseUrl: ""))
         loginVC.viewModel = viewModel
+        loginVC.delegate = self
         guard let transitionType = transitionType else {
             assertionFailure()
             return

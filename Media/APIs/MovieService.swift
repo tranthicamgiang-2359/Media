@@ -11,9 +11,22 @@ import RxSwift
 import Alamofire
 
 class MovieAPI: RequestServerMediaProtcol {
+    let bag = DisposeBag()
     func requestCategoryIDs() -> Single<[Category]> {
-        let request = GetCategoryRequest()
-        return Client().requestArray(request)
+        return Single<[Category]>.create(subscribe: { (singleEvent) -> Disposable in
+            let request = GetCategoryRequest()
+            let categoriesObserverble: Single<[Category]> = Client().requestArray(request)
+            categoriesObserverble.subscribe(onSuccess: { (categories) in
+                let newCategories = categories + categories + categories
+                singleEvent(.success(newCategories))
+            })
+//                .subscribe({ (categories) in
+//                    var newCategories = categories + categories
+//                    singleEvent(.success(newCategories))
+//                })
+            return Disposables.create()
+        })
+//        return Client().requestArray(request)
         
     }
     

@@ -13,7 +13,9 @@ class AppCoordinator: Coordinator {
     var childCoordinators = [Coordinator]()
     let window: UIWindow
     
-    private var token: String? = ""
+    private var token: String? {
+        return UserDefaults.standard.string(forKey: "token")
+    }
     
     init(window: UIWindow) {
         self.window = window
@@ -29,11 +31,14 @@ class AppCoordinator: Coordinator {
     
     private func startAuthentication() {
         let authenticationCoordinator = AuthenticationCoordinator()
+        authenticationCoordinator.delegate = self
+        childCoordinators.append(authenticationCoordinator)
         authenticationCoordinator.start(by: TransitionType.root(window))
     }
     
     private func startAuthenticated() {
         let listMovieCoordinator = ListMovieCoordinator()
+        childCoordinators.append(listMovieCoordinator)
         listMovieCoordinator.start(by: TransitionType.root(window))
     }
     

@@ -17,6 +17,7 @@ struct CategoryCellViewModel {
             self.service.requestMovies(by: self.category.id)
                 .subscribe(onSuccess: { (movies) in
                     observer.onNext(StateViewModel<[Movie]>.success(movies))
+                    observer.onCompleted()
                 }, onError: { (error) in
                     observer.onNext(StateViewModel<[Movie]>.error(error))
                 })

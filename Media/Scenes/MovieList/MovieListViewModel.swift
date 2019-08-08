@@ -14,7 +14,7 @@ class MovieListViewModel {
     private let service: RequestServerMediaProtcol
     private let bag = DisposeBag()
     
-    var categoryVMs: Observable<StateViewModel<[CategoryViewModel]>> {
+    lazy var categoryVMs: Observable<StateViewModel<[CategoryViewModel]>> = {
         return Observable<StateViewModel<[CategoryViewModel]>>.create({ (observer) -> Disposable in
             observer.onNext(StateViewModel<[CategoryViewModel]>.loading)
             self.service.requestCategoryIDs()
@@ -23,13 +23,14 @@ class MovieListViewModel {
                 })
                 .subscribe(onSuccess: { (categoryVMs) in
                     observer.onNext(StateViewModel<[CategoryViewModel]>.success(categoryVMs))
+                    observer.onCompleted()
                 }, onError: { (error) in
                     observer.onError(error)
                 })
                 .disposed(by: self.bag)
             return Disposables.create()
-        })
-    }
+        }).share()
+    }()
     
     init(service: RequestServerMediaProtcol) {
         self.service = service

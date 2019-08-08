@@ -33,7 +33,12 @@ class MovieCollectionViewCell: UICollectionViewCell {
         imdbLabel.text = "\(viewModel.imdb)"
     }
 
-    
+    override func prepareForReuse() {
+        viewModel = nil
+        imageView.image = nil
+        imdbLabel.text = nil
+        super.prepareForReuse()
+    }
 }
 
 

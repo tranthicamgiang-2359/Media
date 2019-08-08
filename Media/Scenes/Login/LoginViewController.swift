@@ -55,8 +55,8 @@ class LoginViewController: UIViewController, VCStoryboardInitializable {
                 case .error(let error):
                     print("Error \(error)")
                 case .success(let user):
+                    UserDefaults.standard.set("hihi", forKey: "token")
                     self.delegate?.didLoginSuccessfully(with: user)
-                    print("Login successfully")
                 }
             }, onError: { (error) in
                 print("Login unsuccessfully")

@@ -66,6 +66,14 @@ struct LoginViewModel {
             })
             .disposed(by: bag)
         
+        emailValidated
+            .subscribe(onNext: {_ in self.errorEmailSubject.onNext("")})
+            .disposed(by: bag)
+        
+        passwordValidated
+            .subscribe(onNext: { _ in self.errorPasswordSubject.onNext("")})
+            .disposed(by: bag)
+        
         loginButtonTapSubject
             .withLatestFrom(credentialCreated)
             .do(onNext: { (_) in
@@ -94,6 +102,8 @@ extension LoginViewModel {
     }
     
     private func validate(password: String) -> Bool {
-        return password.count == 8
+        let regex = try! NSRegularExpression(pattern: "(?=.*[0-9])(?=.*[A-Z])(?=.*[a-z])(?=.*[!&^%$#@()/]).{8}", options: .caseInsensitive)
+        
+        return regex.firstMatch(in: password, options: [], range: NSRange(location: 0, length: password.utf16.count)) != nil
     }
 }

@@ -51,6 +51,7 @@ class Client {
                        encoder: MediaJSONParameterEncoder.default,
                        headers: request.buildHeaders())
                 .responseJSON(completionHandler: { (dataResponse) in
+                    print("======= \(dataResponse.request?.url)")
                     var error: NetworkError?
                     var json: JSON?
                     switch dataResponse.result {
@@ -67,7 +68,6 @@ class Client {
                         singleEvent(.error(error!))
                     } else if let jsonData = json?["data"] as? [JSON], let result =  Array<T>(from: jsonData ) {
                         
-                        print(jsonData)
                         singleEvent(.success(result))
                     }
                 })

@@ -61,10 +61,10 @@ class CategoryCollectionViewCell: UICollectionViewCell {
     }
     
     override func prepareForReuse() {
-        super.prepareForReuse()
-        dataSource = nil
+        collectionView.dataSource = nil
+        viewModel = nil
         categoryLabel.text = nil
-        
+        super.prepareForReuse()
     }
 
 }

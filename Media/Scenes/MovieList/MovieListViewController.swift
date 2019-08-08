@@ -22,6 +22,7 @@ class MovieListViewController: UIViewController, VCStoryboardInitializable {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
         setupCollectionView()
         bind()
     }
