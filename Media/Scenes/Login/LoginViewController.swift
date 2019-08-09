@@ -37,14 +37,14 @@ class LoginViewController: UIViewController, VCStoryboardInitializable {
 
     private func bind() {
         emailTextField.rx.text.compactMap { $0 }
-            .subscribe(viewModel.emailSubject)
+            .bind(to: viewModel.emailSubject)
             .disposed(by: bag)
-        passwordTextField.rx.text.compactMap{ $0 }
-            .subscribe(viewModel.passwordSubject)
+        passwordTextField.rx.text.compactMap { $0 }
+            .bind(to: viewModel.passwordSubject)
             .disposed(by: bag)
         
         loginButton.rx.tap
-            .subscribe(viewModel.loginButtonTapSubject)
+            .bind(to: viewModel.loginButtonTapSubject)
             .disposed(by: bag)
         
         viewModel.requestLoginSubject
@@ -62,6 +62,7 @@ class LoginViewController: UIViewController, VCStoryboardInitializable {
                 print("Login unsuccessfully")
             })
             .disposed(by: bag)
+        
         viewModel.errorEmailSubject
             .bind(to: emailErrorLabel.rx.text)
             .disposed(by: bag)

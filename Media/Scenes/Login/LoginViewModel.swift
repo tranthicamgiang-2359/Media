@@ -39,39 +39,37 @@ struct LoginViewModel {
         loginButtonTapSubject
             .withLatestFrom(emailSubject)
             .filter { $0.isEmpty }
-            .subscribe(onNext: { email in
-                self.errorEmailSubject.onNext("This field is required")
-            })
+            .map{ _ in return "This field is require" }
+            .bind(to: self.errorEmailSubject)
             .disposed(by: bag)
         
         loginButtonTapSubject
             .withLatestFrom(passwordSubject)
             .filter { $0.isEmpty }
-            .subscribe(onNext: { password in
-                self.errorPasswordSubject.onNext("This field is required")
-            })
+            .map { _ in "This field is required" }
+            .bind(to: self.errorPasswordSubject)
             .disposed(by: bag)
         
         emailNotNil
             .filter{ !self.validate(email: $0) }
-            .subscribe(onNext: { _ in
-                self.errorEmailSubject.onNext("Email is not well formed")
-            })
+            .map { _ in "Email is not well formed" }
+            .bind(to: self.errorEmailSubject )
             .disposed(by: bag)
         
         passwordNotNil
             .filter { !self.validate(password: $0) }
-            .subscribe(onNext: { _ in
-                self.errorPasswordSubject.onNext("Password is not well formed")
-            })
+            .map { _ in "Password is not well formed" }
+            .bind(to: self.errorPasswordSubject)
             .disposed(by: bag)
         
         emailValidated
-            .subscribe(onNext: {_ in self.errorEmailSubject.onNext("")})
+            .map { _ in "" }
+            .bind(to: self.errorEmailSubject)
             .disposed(by: bag)
         
         passwordValidated
-            .subscribe(onNext: { _ in self.errorPasswordSubject.onNext("")})
+            .map { _ in "" }
+            .bind(to: self.errorPasswordSubject)
             .disposed(by: bag)
         
         loginButtonTapSubject
@@ -83,15 +81,15 @@ struct LoginViewModel {
             })
             .flatMapLatest { (credential) -> Single<User> in
                 self.service.login(email: credential.email, password: credential.password)
-            }.subscribe(onNext: { user in
+            }
+            .observeOn(MainScheduler.instance)
+            .subscribe(onNext: { user in
                 self.requestLoginSubject.onNext(StateViewModel<User>.success(user))
             }, onError: { (error) in
                 self.requestLoginSubject.onNext(StateViewModel<User>.error(error))
             })
             .disposed(by: bag)
-        
     }
-    
 }
 
 // MARK: Validate logic
