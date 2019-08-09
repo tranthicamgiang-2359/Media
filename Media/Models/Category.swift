@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import RxSwift
 
 struct Category {
     let id: Int
@@ -14,6 +15,8 @@ struct Category {
 }
 
 extension Category: Parser {
+
+    
     init?(from json: JSON) {
         guard let categoryId = json["category_id"] as? Int else { return nil }
         guard let categoryName = json["category_name"] as? String else { return nil }
@@ -24,4 +27,9 @@ extension Category: Parser {
     
 }
 
-typealias CategoryViewModel = Category
+
+struct CategoryViewModel {
+    let id: Int
+    let name: String
+    let movies: Observable<[Movie]>
+}

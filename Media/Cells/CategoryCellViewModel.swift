@@ -10,21 +10,7 @@ import Foundation
 import RxSwift
 
 struct CategoryCellViewModel {
-    
-    var items: Observable<StateViewModel<[Movie]>> {
-        return Observable<StateViewModel<[Movie]>>.create { (observer) -> Disposable in
-            observer.onNext(StateViewModel<[Movie]>.loading)
-            self.service.requestMovies(by: self.category.id)
-                .subscribe(onSuccess: { (movies) in
-                    observer.onNext(StateViewModel<[Movie]>.success(movies))
-                    observer.onCompleted()
-                }, onError: { (error) in
-                    observer.onNext(StateViewModel<[Movie]>.error(error))
-                })
-                .disposed(by: self.bag)
-            return Disposables.create()
-        }.share()
-    }
+
     let service: RequestServerMediaProtcol
 
     let bag = DisposeBag()

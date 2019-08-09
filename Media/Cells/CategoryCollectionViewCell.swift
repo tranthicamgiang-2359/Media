@@ -16,22 +16,15 @@ class CategoryCollectionViewCell: UICollectionViewCell {
     private var isAwaked: Bool = false
     
     var dataSource: MediaRxCollectionViewDataSource?
-    private var bag: DisposeBag? {
-        return viewModel?.bag
-    }
+
     
-    var viewModel: CategoryCellViewModel? {
-        didSet {
-            self.callBindIfCould()
-        }
-    }
+    var bag = DisposeBag()
+    
+
     override func awakeFromNib() {
         super.awakeFromNib()
         self.isAwaked = true
         setupCollectionView()
-        callBindIfCould()
-        
-        // Initialization code
     }
     
     func setupCollectionView() {
@@ -40,30 +33,12 @@ class CategoryCollectionViewCell: UICollectionViewCell {
         collectionView.register(UINib(nibName: "MovieCollectionViewCell", bundle: nil), forCellWithReuseIdentifier: "MovieCollectionViewCell")
     }
     
-    func callBindIfCould() {
-        if isAwaked {
-            bind()
-        }
-    }
-    func bind() {
-        guard let viewModel = viewModel, let bag = bag else { return }
-        viewModel.items
-            .compactMap { (stateViewModel) -> [Movie]? in
-                switch stateViewModel {
-                case .success(let movies): return movies
-                default: return nil
-                }
-            }.bind(to: collectionView.rx.items){ [weak self] (collectionView, row, element) in
-                let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "MovieCollectionViewCell", for: IndexPath(row: row, section: 0))
-                return self?.dataSource?.configure(cell: cell, with: element) ?? UICollectionViewCell()
-            }.disposed(by: bag)
-        categoryLabel.text = viewModel.category.name
-    }
+
     
     override func prepareForReuse() {
-        collectionView.dataSource = nil
-        viewModel = nil
+
         categoryLabel.text = nil
+        self.bag = DisposeBag()
         super.prepareForReuse()
     }
 

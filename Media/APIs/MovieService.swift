@@ -26,8 +26,6 @@ class MovieAPI: RequestServerMediaProtcol {
 //                })
             return Disposables.create()
         })
-//        return Client().requestArray(request)
-        
     }
     
     func requestMovies(by id: Int) -> Single<[Movie]> {

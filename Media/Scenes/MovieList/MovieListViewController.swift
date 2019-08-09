@@ -18,8 +18,6 @@ class MovieListViewController: UIViewController, VCStoryboardInitializable {
     
     private let bag = DisposeBag()
     
-    private var dataSource: MediaRxCollectionViewDataSource!
-    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -28,7 +26,6 @@ class MovieListViewController: UIViewController, VCStoryboardInitializable {
     }
     
     func setupCollectionView() {
-        dataSource = ListCategoryDataSource()
         
         collectionView.delegate = self
         collectionView.register(UINib(nibName: "CategoryCollectionViewCell", bundle: nil), forCellWithReuseIdentifier: "CategoryCollectionViewCell")
@@ -47,34 +44,32 @@ class MovieListViewController: UIViewController, VCStoryboardInitializable {
             .disposed(by: bag)
         
         viewModel.categoryVMs
-            .compactMap { stateVM -> [CategoryViewModel]? in
+            .map { (stateVM) -> [CategoryViewModel]? in
                 switch stateVM {
-                case .loading: return nil
                 case .success(let categories): return categories
-                    
-                case .error(_): return nil
+                default: return nil
                 }
-            }.bind(to: collectionView.rx.items){ (collectionView, row, element) in
-                let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "CategoryCollectionViewCell", for: IndexPath(row: row, section: 0))
-                return self.dataSource.configure(cell: cell, with: element)
+            }.filter { $0 != nil }
+            .map{ return $0 ?? [] }
+            .bind(to: collectionView.rx.items) {(collectionView, row, element) in
+                let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "CategoryCollectionViewCell", for: IndexPath(row: row, section: 0)) as! CategoryCollectionViewCell
+                element.movies
+                    .bind(to: cell.collectionView.rx.items) { (moviesCollectionView, movieRow, movie) in
+                        let movieCell = moviesCollectionView.dequeueReusableCell(withReuseIdentifier: "MovieCollectionViewCell", for: IndexPath(row: movieRow, section: 0)) as! MovieCollectionViewCell
+                        movieCell.viewModel = MovieCellViewModel(movie: movie)
+                        return movieCell
+                }.disposed(by: cell.bag)
+                
+                return cell
             }.disposed(by: bag)
+
     }
+
 }
+
 
 extension MovieListViewController: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         return CGSize(width: view.bounds.width, height: 200)
     }
-}
-
-class ListCategoryDataSource: MediaRxCollectionViewDataSource {
-    func configure<T>(cell: T, with item: Any) -> T where T : UICollectionViewCell {
-        guard let listCategoryCell = cell as? CategoryCollectionViewCell, let category = item as? Category else { fatalError() }
-        
-        listCategoryCell.viewModel = CategoryCellViewModel(service: MovieAPI(), categoryId: category.id, categoryName: category.name)
-        return cell
-    }
-    
-    
-    
 }
