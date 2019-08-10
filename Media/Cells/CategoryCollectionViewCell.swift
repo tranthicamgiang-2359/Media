@@ -12,73 +12,71 @@ import RxSwift
 class CategoryCollectionViewCell: UICollectionViewCell {
     @IBOutlet weak var categoryLabel: UILabel!
     @IBOutlet weak var collectionView: UICollectionView!
+    private var isAwaked = false
     
-    private var isAwaked: Bool = false
-    
-    var dataSource: MediaRxCollectionViewDataSource?
-    private var bag: DisposeBag? {
-        return viewModel?.bag
+    var viewModel: CategoryViewModel? {
+        didSet { bindIfCould()}
     }
     
-    var viewModel: CategoryCellViewModel? {
+    var movies = [Movie]() {
         didSet {
-            self.callBindIfCould()
+            collectionView.reloadData()
         }
     }
+    
+    private var bag = DisposeBag()
+    
     override func awakeFromNib() {
         super.awakeFromNib()
-        self.isAwaked = true
+        isAwaked = true
         setupCollectionView()
-        callBindIfCould()
-        
-        // Initialization code
+        bindIfCould()
     }
-    
-    func setupCollectionView() {
-        dataSource = MoviesCollectionViewDataSource()
-        collectionView.delegate = self
-        collectionView.register(UINib(nibName: "MovieCollectionViewCell", bundle: nil), forCellWithReuseIdentifier: "MovieCollectionViewCell")
-    }
-    
-    func callBindIfCould() {
+
+    func bindIfCould() {
         if isAwaked {
             bind()
         }
     }
-    func bind() {
-        guard let viewModel = viewModel, let bag = bag else { return }
-        viewModel.items
-            .compactMap { (stateViewModel) -> [Movie]? in
-                switch stateViewModel {
-                case .success(let movies): return movies
-                default: return nil
-                }
-            }.bind(to: collectionView.rx.items){ [weak self] (collectionView, row, element) in
-                let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "MovieCollectionViewCell", for: IndexPath(row: row, section: 0))
-                return self?.dataSource?.configure(cell: cell, with: element) ?? UICollectionViewCell()
-            }.disposed(by: bag)
-        categoryLabel.text = viewModel.category.name
+    
+    private func bind() {
+        guard let viewModel = viewModel else { return }
+        categoryLabel.text = viewModel.name
+        viewModel.output.movies
+            .drive(onNext: { [weak self] movies in
+                self?.movies = movies
+            }).disposed(by: bag)
+        
+    }
+    
+    func setupCollectionView() {
+        collectionView.dataSource = self
+        collectionView.delegate = self
+        collectionView.register(UINib(nibName: "MovieCollectionViewCell", bundle: nil), forCellWithReuseIdentifier: "MovieCollectionViewCell")
     }
     
     override func prepareForReuse() {
-        collectionView.dataSource = nil
-        viewModel = nil
-        categoryLabel.text = nil
+        self.bag = DisposeBag()
         super.prepareForReuse()
     }
-
+    
 }
 
-extension CategoryCollectionViewCell: UICollectionViewDelegateFlowLayout {
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        return CGSize(width: 100, height: 150)
+extension CategoryCollectionViewCell: UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        return movies.count
     }
-}
-
-class MoviesCollectionViewDataSource: MediaRxCollectionViewDataSource {
-    func configure<T>(cell: T, with item: Any) -> T where T : UICollectionViewCell {
-        guard let movieCell = cell as? MovieCollectionViewCell, let movie = item as? Movie else { fatalError() }
-        movieCell.viewModel = MovieCellViewModel(movie: movie)
+    
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "MovieCollectionViewCell", for: indexPath) as! MovieCollectionViewCell
+        cell.configureCell(with: MovieCellViewModel(movie: movies[indexPath.row]))
         return cell
     }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        return CGSize(width: 120, height: 160)
+    }
+    
 }
+
+
