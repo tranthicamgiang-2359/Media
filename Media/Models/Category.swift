@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import RxSwift
 
 struct Category {
     let id: Int
@@ -24,4 +25,3 @@ extension Category: Parser {
     
 }
 
-typealias CategoryViewModel = Category

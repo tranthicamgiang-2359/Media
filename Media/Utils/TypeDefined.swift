@@ -8,6 +8,4 @@
 
 import Foundation
 
-typealias BoolBlock = (Bool) -> ()
 typealias EmptyBlock = () -> ()
-typealias BoolResultBlock = (Result<Bool, Error>) -> ()
