@@ -10,9 +10,9 @@ import Foundation
 import RxSwift
 
 protocol RequestServerMediaProtcol {
-    func requestCategoryIDs() -> Single<[Category]>
+    func requestCategoryIDs() -> Single<Result<[Category], NetworkError>>
     
-    func requestMovies(by id: Int) -> Single<[Movie]>
+    func requestMovies(by id: Int) -> Single<Result<[Movie], NetworkError>>
     
 }
 

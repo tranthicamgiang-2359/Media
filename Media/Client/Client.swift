@@ -43,8 +43,9 @@ class Client {
         
     }
     
-    func requestArray<T: Parser>(_ request: MediaRequest) -> Single<[T]> {
-        return Single<[T]>.create(subscribe: { (singleEvent) -> Disposable in
+    func requestArray<T: Parser>(_ request: MediaRequest) -> Single<Result<[T], NetworkError>> {
+       
+        return Single<Result<[T], NetworkError>>.create(subscribe: { (single) -> Disposable in
             AF.request(request.url,
                        method: request.method,
                        parameters: request.parameter,
@@ -59,16 +60,15 @@ class Client {
                         if let statusCode = dataResponse.response?.statusCode, let clientError = ClientErrorStatus.init(rawValue: statusCode) {
                             error = .clientError(clientError)
                         }
-                        
+
                         json = value as? JSON
                     case .failure(let e):
                         error = .serverResponse(e.localizedDescription)
                     }
-                    if let _ = error {
-                        singleEvent(.error(error!))
+                    if let networkError = error {
+                        single(.success(.failure(networkError)))
                     } else if let jsonData = json?["data"] as? [JSON], let result =  Array<T>(from: jsonData ) {
-                        
-                        singleEvent(.success(result))
+                        single(.success(.success(result)))
                     }
                 })
             return Disposables.create()

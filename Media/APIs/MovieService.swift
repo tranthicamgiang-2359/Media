@@ -12,25 +12,15 @@ import Alamofire
 
 class MovieAPI: RequestServerMediaProtcol {
     let bag = DisposeBag()
-    func requestCategoryIDs() -> Single<[Category]> {
-        return Single<[Category]>.create(subscribe: { (singleEvent) -> Disposable in
-            let request = GetCategoryRequest()
-            let categoriesObserverble: Single<[Category]> = Client().requestArray(request)
-            categoriesObserverble.subscribe(onSuccess: { (categories) in
-                let newCategories = categories + categories + categories
-                singleEvent(.success(newCategories))
+    func requestCategoryIDs() -> Single<Result<[Category], NetworkError>> {
+        let request = GetCategoryRequest()
+        return Client().requestArray(request)
+            .map({ (result) -> Result<[Category], NetworkError> in
+                return result.flatMap { $0 + $0 + $0 } // I need more categoriessss
             })
-//                .subscribe({ (categories) in
-//                    var newCategories = categories + categories
-//                    singleEvent(.success(newCategories))
-//                })
-            return Disposables.create()
-        })
-//        return Client().requestArray(request)
-        
     }
     
-    func requestMovies(by id: Int) -> Single<[Movie]> {
+    func requestMovies(by id: Int) -> Single<Result<[Movie], NetworkError>> {
         let request = GetMoviesByIDRequest(categoryId: id)
         return Client().requestArray(request)
     }
