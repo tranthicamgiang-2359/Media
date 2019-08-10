@@ -12,3 +12,27 @@ enum Result<T, E: Error> {
     case success(T)
     case failure(E)
 }
+
+extension Result {
+    var value: T? {
+        guard case let .success(value) = self else { return nil }
+        return value
+    }
+    
+    var error: E? {
+        guard case let .failure(error) = self else { return nil }
+        return error
+    }
+}
+
+extension Result {
+    func flatMap<U>(_ tranform: (T) -> U) -> Result<U, E> {
+        switch self {
+        case .success(let value): return .success(tranform(value))
+        case .failure(let error): return .failure(error)
+        }
+    }
+    
+}
+
+
