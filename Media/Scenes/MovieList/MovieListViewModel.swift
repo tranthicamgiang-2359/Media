@@ -8,31 +8,65 @@
 
 import Foundation
 import RxSwift
+import RxCocoa
 
-class MovieListViewModel {
+class MovieListViewModel: ViewModelType {
+    struct Input {
+        let reloadObserver: AnyObserver<Void>
+    }
     
-    private let service: RequestServerMediaProtcol
-    private let bag = DisposeBag()
+    struct Output {
+        let categories: Driver<[CategoryViewModel]>
+        let error: Driver<NetworkError>
+    }
     
-    lazy var categoryVMs: Observable<StateViewModel<[CategoryViewModel]>> = {
-        return Observable<StateViewModel<[CategoryViewModel]>>.create({ (observer) -> Disposable in
-            observer.onNext(StateViewModel<[CategoryViewModel]>.loading)
-            self.service.requestCategoryIDs()
-                .map({ (categories) -> [CategoryViewModel] in
-                    return categories
-                })
-                .subscribe(onSuccess: { (categoryVMs) in
-                    observer.onNext(StateViewModel<[CategoryViewModel]>.success(categoryVMs))
-                    observer.onCompleted()
-                }, onError: { (error) in
-                    observer.onError(error)
-                })
-                .disposed(by: self.bag)
-            return Disposables.create()
-        }).share()
-    }()
+    let service: RequestServerMediaProtcol
+    var input: Input
+    var output: Output
+    
+    private let reloadSubject = PublishSubject<Void>()
+    private let categorySubject = PublishSubject<[CategoryViewModel]>()
+    private let errorRequestSubject = PublishSubject<NetworkError>()
+    
+    private var bag = DisposeBag()
     
     init(service: RequestServerMediaProtcol) {
         self.service = service
+        self.input = Input(reloadObserver: reloadSubject.asObserver())
+        self.output = Output(categories: categorySubject.asDriver(onErrorJustReturn: []),
+                             error: errorRequestSubject.asDriver(onErrorJustReturn: .unknown))
+        setupRefresh()
+        bind()
+        
+    }
+    
+    private func setupRefresh() {
+        bag = DisposeBag()
+        reloadSubject
+            .subscribe(onNext: { [weak self] in
+                self?.bind()
+            }).disposed(by: bag)
+    }
+
+    private func bind() {
+        let categoryRequested = self.service.requestCategoryIDs()
+            .asObservable().share(replay: 1)
+        
+        categoryRequested
+            .compactMap { $0.error }
+            .bind(to: errorRequestSubject)
+            .disposed(by: bag)
+        
+        categoryRequested
+            .compactMap { $0.value }
+            .map({ (categories) -> [CategoryViewModel] in
+                var categoryVMs = [CategoryViewModel]()
+                categories.forEach { categoryVMs.append(CategoryViewModel(id: $0.id, name: $0.name, service: self.service)) }
+                return categoryVMs
+            })
+            .bind(to: categorySubject)
+            .disposed(by: bag)
+        
+        
     }
 }
