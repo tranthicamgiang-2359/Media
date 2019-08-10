@@ -14,27 +14,19 @@ class MovieCollectionViewCell: UICollectionViewCell {
     @IBOutlet weak var imageView: UIImageView!
     @IBOutlet weak var imdbLabel: UILabel!
     
-    var viewModel: MovieCellViewModel? {
-        didSet {
-            bind()
-        }
-    }
-    
     override func awakeFromNib() {
         super.awakeFromNib()
         // Initialization code
     }
     
-    private func bind() {
-        guard let viewModel = viewModel else { return }
+    func configureCell(with viewModel: MovieCellViewModel) {
+        imdbLabel.text = "\(viewModel.imdb)"
         if let imageUrl = viewModel.urlImage {
             imageView.kf.setImage(with: imageUrl)
         }
-        imdbLabel.text = "\(viewModel.imdb)"
     }
 
     override func prepareForReuse() {
-        viewModel = nil
         imageView.image = nil
         imdbLabel.text = nil
         super.prepareForReuse()

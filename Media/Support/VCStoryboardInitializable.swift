@@ -9,11 +9,11 @@
 import Foundation
 import UIKit
 
-protocol VCStoryboardInitializable {
+protocol StoryboardInitializable {
     
 }
 
-extension VCStoryboardInitializable where Self: UIViewController {
+extension StoryboardInitializable where Self: UIViewController {
     static func initFromStoryboard(_ storyboard: String = "Main") -> Self {
         let storyboard = UIStoryboard(name: storyboard, bundle: nil)
         return storyboard.instantiateViewController(withIdentifier: String(describing: Self.self)) as! Self

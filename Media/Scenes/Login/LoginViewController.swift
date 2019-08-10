@@ -15,7 +15,7 @@ protocol LoginViewControllerDelegate: class {
     func didLoginSuccessfully(with user: User)
 }
 
-class LoginViewController: UIViewController, VCStoryboardInitializable {
+class LoginViewController: UIViewController, StoryboardInitializable {
     
     @IBOutlet weak var emailTextField: UITextField!
     @IBOutlet weak var emailErrorLabel: UILabel!

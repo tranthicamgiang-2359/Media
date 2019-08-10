@@ -27,6 +27,6 @@ extension Movie: Parser {
         self.cover = cover
         self.imdbRating = rating
     }
-    
-    
 }
+
+typealias MovieViewModel = Movie
