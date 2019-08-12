@@ -29,6 +29,7 @@ class MovieListViewModel: ViewModelType {
     private let reloadCategorySubject = PublishSubject<CategoryViewModel>()
     private let categorySubject = PublishSubject<[CategoryViewModel]>()
     private let errorRequestSubject = PublishSubject<NetworkError>()
+    let example = PublishSubject<Event<[CategoryViewModel]>>()
     
     private var bag = DisposeBag()
     
@@ -37,7 +38,7 @@ class MovieListViewModel: ViewModelType {
         self.input = Input(reloadObserver: reloadSubject.asObserver())
         self.output = Output(categories: categorySubject.asDriver(onErrorJustReturn: []),
                              error: errorRequestSubject.asDriver(onErrorJustReturn: .unknown),
-                             reloadCategory: reloadCategorySubject.asDriver(onErrorJustReturn: CategoryViewModel(id: 0, name: "", movies: [])))
+                             reloadCategory: reloadCategorySubject.asDriver(onErrorJustReturn: CategoryViewModel()))
         setupRefresh()
         bind()
         
@@ -66,7 +67,9 @@ class MovieListViewModel: ViewModelType {
             .compactMap { $0.value }
             .map({ (categories) -> [CategoryViewModel] in
                 categories.map{ CategoryViewModel(id: $0.id, name: $0.name, movies: [])}
-            }).share()
+            }).share(replay: 1)
+        
+
         categoryViewModelRequested
             .bind(to: categorySubject)
             .disposed(by: bag)
@@ -79,7 +82,10 @@ class MovieListViewModel: ViewModelType {
                     return MovieAPI().requestMovies(by: category.id)
                         .asObservable()
                         .compactMap { $0.value }
-                        .map { CategoryViewModel(id: category.id, name: category.name, movies: $0)}
+                        .map {
+                            CategoryViewModel(id: category.id, name: category.name, movies: $0)
+                            
+                    }
                 })).merge()
                 
             }
