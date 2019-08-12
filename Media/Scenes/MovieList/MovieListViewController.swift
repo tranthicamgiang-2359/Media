@@ -26,6 +26,7 @@ class MovieListViewController: UIViewController, StoryboardInitializable {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        self.title = "Movies"
         setupCollectionView()
         bind()
         
