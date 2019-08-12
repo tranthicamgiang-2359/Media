@@ -18,7 +18,7 @@ class Client {
             AF.request(request.url,
                        method: request.method,
                        parameters: request.parameter,
-                       encoder: MediaJSONParameterEncoder.default,
+                       encoder: JSONParameterEncoder.default,
                        headers: request.buildHeaders())
                 .responseJSON(completionHandler: { (dataResponse) in
                     print("======= \(String(describing: dataResponse.request?.url))")

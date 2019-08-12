@@ -13,10 +13,8 @@ class ListMovieCoordinator: Coordinator {
     var childCoordinators = [Coordinator]()
     
     func start(by transitionType: TransitionType?) {
-        let movieListVC = MovieListViewController.initFromStoryboard()
+        let movieListVC: MovieListViewController = UIStoryboard.main.initViewController()
         movieListVC.viewModel = MovieListViewModel(service: MovieAPI())
         transition(to: movieListVC, by: transitionType!)
     }
-    
-    
 }
