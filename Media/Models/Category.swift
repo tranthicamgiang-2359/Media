@@ -9,19 +9,12 @@
 import Foundation
 import RxSwift
 
-struct Category {
+struct Category: Codable {
     let id: Int
     let name: String
-}
-
-extension Category: Parser {
-    init?(from json: JSON) {
-        guard let categoryId = json["category_id"] as? Int else { return nil }
-        guard let categoryName = json["category_name"] as? String else { return nil }
-        self.id = categoryId
-        self.name = categoryName
+    
+    enum CodingKeys: String, CodingKey {
+        case id = "category_id"
+        case name = "category_name"
     }
-    
-    
 }
-

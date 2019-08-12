@@ -12,63 +12,30 @@ import RxSwift
 
 class Client {
     
-    func request<T: Parser>(_ request: MediaRequest) -> Single<T> {
-        return Single<T>.create(subscribe: { (singleEvent) -> Disposable in
-            AF.request(request.url,
-                       method: request.method,
-                       parameters: request.parameter,
-                       encoder: MediaJSONParameterEncoder.default,
-                       headers: request.buildHeaders())
-                .responseJSON(completionHandler: { (dataResponse) in
-                    var error: NetworkError?
-                    var json: JSON?
-                    switch dataResponse.result {
-                    case .success(let value):
-                        if let statusCode = dataResponse.response?.statusCode {
-                            error = .clientError(ClientErrorStatus.init(rawValue: statusCode) ?? ClientErrorStatus.unknown)
-                        }
-                        
-                        json = value as? JSON
-                    case .failure(let e):
-                        error = .serverResponse(e.localizedDescription)
-                    }
-                    if let _ = error {
-                        singleEvent(.error(error!))
-                    } else if let jsonValue = json, let result =  T(from: jsonValue){
-                        singleEvent(.success(result))
-                    }
-                })
-            return Disposables.create()
-        })
-        
-    }
-    
-    func requestArray<T: Parser>(_ request: MediaRequest) -> Single<Result<[T], NetworkError>> {
+    func request(_ request: MediaRequest) -> Single<Result<Data, NetworkError>> {
        
-        return Single<Result<[T], NetworkError>>.create(subscribe: { (single) -> Disposable in
+        return Single<Result<Data, NetworkError>>.create(subscribe: { (single) -> Disposable in
             AF.request(request.url,
                        method: request.method,
                        parameters: request.parameter,
                        encoder: MediaJSONParameterEncoder.default,
                        headers: request.buildHeaders())
                 .responseJSON(completionHandler: { (dataResponse) in
-                    print("======= \(dataResponse.request?.url)")
+                    print("======= \(String(describing: dataResponse.request?.url))")
                     var error: NetworkError?
-                    var json: JSON?
                     switch dataResponse.result {
-                    case .success(let value):
+                    case .success(_):
                         if let statusCode = dataResponse.response?.statusCode, let clientError = ClientErrorStatus.init(rawValue: statusCode) {
                             error = .clientError(clientError)
                         }
-
-                        json = value as? JSON
                     case .failure(let e):
                         error = .serverResponse(e.localizedDescription)
                     }
+                    
                     if let networkError = error {
                         single(.success(.failure(networkError)))
-                    } else if let jsonData = json?["data"] as? [JSON], let result =  Array<T>(from: jsonData ) {
-                        single(.success(.success(result)))
+                    } else if let data = dataResponse.data {
+                        single(.success(.success(data)))
                     }
                 })
             return Disposables.create()

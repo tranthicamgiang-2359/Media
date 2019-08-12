@@ -15,17 +15,12 @@ struct Movie {
     let imdbRating: Double
 }
 
-extension Movie: Parser {
-    init?(from json: JSON) {
-        guard let id = json["id"] as? String else { return nil }
-        guard let title = json["title"] as? String else { return nil }
-        guard let cover = json["cover"] as? String else { return nil }
-        guard let rating = json["imdb_rating"] as? Double else { return nil }
-        
-        self.id = id
-        self.title = title
-        self.cover = cover
-        self.imdbRating = rating
+extension Movie: Codable {
+    enum CodingKeys: String, CodingKey {
+        case id
+        case title
+        case cover
+        case imdbRating = "imdb_rating"
     }
 }
 
