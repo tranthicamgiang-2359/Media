@@ -18,6 +18,7 @@ class MovieListViewModel: ViewModelType {
     struct Output {
         let categories: Driver<[CategoryViewModel]>
         let error: Driver<NetworkError>
+        let reloadCategory: Driver<CategoryViewModel>
     }
     
     let service: RequestServerMediaProtcol
@@ -25,6 +26,7 @@ class MovieListViewModel: ViewModelType {
     var output: Output
     
     private let reloadSubject = PublishSubject<Void>()
+    private let reloadCategorySubject = PublishSubject<CategoryViewModel>()
     private let categorySubject = PublishSubject<[CategoryViewModel]>()
     private let errorRequestSubject = PublishSubject<NetworkError>()
     
@@ -34,7 +36,8 @@ class MovieListViewModel: ViewModelType {
         self.service = service
         self.input = Input(reloadObserver: reloadSubject.asObserver())
         self.output = Output(categories: categorySubject.asDriver(onErrorJustReturn: []),
-                             error: errorRequestSubject.asDriver(onErrorJustReturn: .unknown))
+                             error: errorRequestSubject.asDriver(onErrorJustReturn: .unknown),
+                             reloadCategory: reloadCategorySubject.asDriver(onErrorJustReturn: CategoryViewModel(id: 0, name: "", movies: [])))
         setupRefresh()
         bind()
         
@@ -43,6 +46,7 @@ class MovieListViewModel: ViewModelType {
     
     private func setupRefresh() {
         bag = DisposeBag()
+
         reloadSubject
             .subscribe(onNext: { [weak self] in
                 self?.bind()
@@ -58,16 +62,28 @@ class MovieListViewModel: ViewModelType {
             .bind(to: errorRequestSubject)
             .disposed(by: bag)
         
-        categoryRequested
+        let categoryViewModelRequested = categoryRequested
             .compactMap { $0.value }
             .map({ (categories) -> [CategoryViewModel] in
-                var categoryVMs = [CategoryViewModel]()
-                categories.forEach { categoryVMs.append(CategoryViewModel(id: $0.id, name: $0.name, service: self.service)) }
-                return categoryVMs
-            })
-            .subscribe(onNext: { (categories) in
-                self.categorySubject.onNext(categories)
-            })
+                categories.map{ CategoryViewModel(id: $0.id, name: $0.name, movies: [])}
+            }).share()
+        categoryViewModelRequested
+            .bind(to: categorySubject)
+            .disposed(by: bag)
+        
+
+        categoryRequested
+            .compactMap { $0.value }
+            .flatMap { categories -> Observable<CategoryViewModel> in
+                return Observable.from(categories.map({ (category) -> Observable<CategoryViewModel> in
+                    return MovieAPI().requestMovies(by: category.id)
+                        .asObservable()
+                        .compactMap { $0.value }
+                        .map { CategoryViewModel(id: category.id, name: category.name, movies: $0)}
+                })).merge()
+                
+            }
+            .bind(to: reloadCategorySubject)
             .disposed(by: bag)
     }
 }
