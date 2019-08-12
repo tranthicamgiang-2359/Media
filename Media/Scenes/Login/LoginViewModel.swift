@@ -31,8 +31,8 @@ struct LoginViewModel {
     private func bind() {
         let emailNotNil = loginButtonTapSubject.withLatestFrom(emailSubject).filter { !$0.isEmpty }
         let passwordNotNil = loginButtonTapSubject.withLatestFrom(passwordSubject).filter { !$0.isEmpty }
-        let emailValidated = emailNotNil.filter { self.validate(email: $0) }
-        let passwordValidated = passwordNotNil.filter { self.validate(password: $0) }
+        let emailValidated = emailNotNil.filter { Validator.validate(email: $0) }
+        let passwordValidated = passwordNotNil.filter { Validator.validate(password: $0) }
         let credentialCreated = Observable.combineLatest(emailValidated, passwordValidated) { Credential(email: $0, password: $1) }
         
         
@@ -51,13 +51,13 @@ struct LoginViewModel {
             .disposed(by: bag)
         
         emailNotNil
-            .filter{ !self.validate(email: $0) }
+            .filter{ !Validator.validate(email: $0) }
             .map { _ in "Email is not well formed" }
             .bind(to: self.errorEmailSubject )
             .disposed(by: bag)
         
         passwordNotNil
-            .filter { !self.validate(password: $0) }
+            .filter { !Validator.validate(password: $0) }
             .map { _ in "Password is not well formed" }
             .bind(to: self.errorPasswordSubject)
             .disposed(by: bag)
@@ -89,19 +89,5 @@ struct LoginViewModel {
                 self.requestLoginSubject.onNext(StateViewModel<User>.error(error))
             })
             .disposed(by: bag)
-    }
-}
-
-// MARK: Validate logic
-extension LoginViewModel {
-    private func validate(email: String) -> Bool {
-        let regex = try! NSRegularExpression(pattern: ".+@.+", options: .caseInsensitive)
-        return regex.firstMatch(in: email, options: [], range: NSRange(location: 0, length: email.utf16.count)) != nil
-    }
-    
-    private func validate(password: String) -> Bool {
-        let regex = try! NSRegularExpression(pattern: "(?=.*[0-9])(?=.*[A-Z])(?=.*[a-z])(?=.*[!&^%$#@()/]).{8}", options: .caseInsensitive)
-        
-        return regex.firstMatch(in: password, options: [], range: NSRange(location: 0, length: password.utf16.count)) != nil
     }
 }
