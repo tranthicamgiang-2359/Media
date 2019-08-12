@@ -10,16 +10,10 @@ import Foundation
 import RxSwift
 
 protocol AuthenticationService {
-    var baseUrl: String { get set }
     func login(email: String, password: String) -> Single<User>
 }
 
 class AuthenticationAPI: AuthenticationService {
-    var baseUrl: String
-    
-    init(baseUrl: String) {
-        self.baseUrl = baseUrl
-    }
     
     func login(email: String, password: String) -> Single<User> {
         return Single<User>.create(subscribe: { (singleEven) -> Disposable in
