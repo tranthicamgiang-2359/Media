@@ -34,8 +34,7 @@ class CategoryViewModel: ViewModelType {
     }
     
     private var errorRequestMovieSubject = PublishSubject<NetworkError>()
-    private var moviesSubject = PublishSubject<[Movie]>()
-//    private var reloadSubject = PublishSubject<Void>()
+    private var moviesSubject = BehaviorRelay<[Movie]>(value: [])
     private let bag = DisposeBag()
     
     init(id: Int, name: String, service: RequestServerMediaProtcol) {

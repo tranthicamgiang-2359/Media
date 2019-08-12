@@ -38,6 +38,7 @@ class MovieListViewModel: ViewModelType {
         setupRefresh()
         bind()
         
+
     }
     
     private func setupRefresh() {
@@ -64,9 +65,9 @@ class MovieListViewModel: ViewModelType {
                 categories.forEach { categoryVMs.append(CategoryViewModel(id: $0.id, name: $0.name, service: self.service)) }
                 return categoryVMs
             })
-            .bind(to: categorySubject)
+            .subscribe(onNext: { (categories) in
+                self.categorySubject.onNext(categories)
+            })
             .disposed(by: bag)
-        
-        
     }
 }

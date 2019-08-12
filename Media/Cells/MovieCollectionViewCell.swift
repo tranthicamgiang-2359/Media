@@ -22,7 +22,8 @@ class MovieCollectionViewCell: UICollectionViewCell {
     func configureCell(with viewModel: MovieCellViewModel) {
         imdbLabel.text = "\(viewModel.imdb)"
         if let imageUrl = viewModel.urlImage {
-            imageView.kf.setImage(with: imageUrl)
+            let resource = ImageResource(downloadURL: imageUrl, cacheKey: "\(imageUrl)")
+            imageView.kf.setImage(with: resource)
         }
     }
 
