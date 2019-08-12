@@ -14,7 +14,7 @@ class AppCoordinator: Coordinator {
     let window: UIWindow
     
     private var token: String? {
-        return UserDefaults.standard.string(forKey: "token")
+        return UserDefaultStorage.shared.value(for: UserDefaultKey.token.rawValue) as? String
     }
     
     init(window: UIWindow) {
