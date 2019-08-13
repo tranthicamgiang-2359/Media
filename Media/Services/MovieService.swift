@@ -12,7 +12,7 @@ import Alamofire
 
 class MovieAPI: RequestServerMediaProtcol {
     let bag = DisposeBag()
-    func requestCategoryIDs() -> Single<Result<[Category], NetworkError>> {
+    func requestCategoryIDs() -> Observable<Result<[Category], NetworkError>> {
         let request = GetCategoryRequest()
         return Client().request(request)
             .map({ (result) -> Result<[Category], NetworkError> in
@@ -24,7 +24,7 @@ class MovieAPI: RequestServerMediaProtcol {
             })
     }
     
-    func requestMovies(by id: Int) -> Single<Result<[Movie], NetworkError>> {
+    func requestMovies(by id: Int) -> Observable<Result<[Movie], NetworkError>> {
         let request = GetMoviesByIDRequest(categoryId: id)
         return Client().request(request)
             .map({ (result) -> Result<[Movie], NetworkError> in

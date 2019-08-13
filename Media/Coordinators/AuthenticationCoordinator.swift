@@ -20,8 +20,8 @@ class AuthenticationCoordinator: Coordinator {
     weak var delegate: AuthenticationCoordinatorDelegate?
 
     func start(by transitionType: TransitionType?) {
-        let loginVC = LoginViewController.initFromStoryboard()
-        let viewModel = LoginViewModel(loginService: AuthenticationAPI(baseUrl: ""))
+        let loginVC: LoginViewController = UIStoryboard.main.initViewController()
+        let viewModel = LoginViewModel(loginService: AuthenticationAPI())
         loginVC.viewModel = viewModel
         loginVC.delegate = self
         guard let transitionType = transitionType else {

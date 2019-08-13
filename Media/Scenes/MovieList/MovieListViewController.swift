@@ -46,6 +46,7 @@ class MovieListViewController: UIViewController {
         refreshControl.rx.controlEvent(.valueChanged)
             .subscribe(onNext: {[weak self] in
                 self?.categories.removeAll()
+                self?.collectionView.reloadData()
             })
             .disposed(by: bag)
         refreshControl.rx.controlEvent(.valueChanged)
@@ -57,8 +58,7 @@ class MovieListViewController: UIViewController {
             .subscribe(onNext: { (error) in
                 
             }).disposed(by: bag)
-        
-        
+
         viewModel.output.categories
             .drive(onNext: { [weak self] categories in
                 self?.refreshControl.endRefreshing()
