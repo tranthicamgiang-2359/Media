@@ -21,7 +21,7 @@ class CategoryViewModel {
         return model.name
     }
     
-    init(id: Int, name: String, movies: [Movie]) {
+    init(id: Int = 0, name: String = "", movies: [Movie] = []) {
         self.model = Category(id: id, name: name)
         self.movies = movies
     }

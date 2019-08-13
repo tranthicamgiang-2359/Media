@@ -31,26 +31,26 @@ class MovieListViewModel: ViewModelType {
     private let errorRequestSubject = PublishSubject<NetworkError>()
     
     private var bag = DisposeBag()
+    private var refreshBag = DisposeBag()
     
     init(service: RequestServerMediaProtcol) {
         self.service = service
         self.input = Input(reloadObserver: reloadSubject.asObserver())
         self.output = Output(categories: categorySubject.asDriver(onErrorJustReturn: []),
                              error: errorRequestSubject.asDriver(onErrorJustReturn: .unknown),
-                             reloadCategory: reloadCategorySubject.asDriver(onErrorJustReturn: CategoryViewModel(id: 0, name: "", movies: [])))
+                             reloadCategory: reloadCategorySubject.asDriver(onErrorJustReturn: CategoryViewModel()))
         setupRefresh()
         bind()
-        
-
     }
     
     private func setupRefresh() {
-        bag = DisposeBag()
-
         reloadSubject
+            .do(onNext: { [weak self] (_) in
+                self?.bag = DisposeBag()
+            })
             .subscribe(onNext: { [weak self] in
                 self?.bind()
-            }).disposed(by: bag)
+            }).disposed(by: refreshBag)
     }
 
     private func bind() {
@@ -66,7 +66,9 @@ class MovieListViewModel: ViewModelType {
             .compactMap { $0.value }
             .map({ (categories) -> [CategoryViewModel] in
                 categories.map{ CategoryViewModel(id: $0.id, name: $0.name, movies: [])}
-            }).share()
+            }).share(replay: 1)
+        
+
         categoryViewModelRequested
             .bind(to: categorySubject)
             .disposed(by: bag)
@@ -79,7 +81,9 @@ class MovieListViewModel: ViewModelType {
                     return MovieAPI().requestMovies(by: category.id)
                         .asObservable()
                         .compactMap { $0.value }
-                        .map { CategoryViewModel(id: category.id, name: category.name, movies: $0)}
+                        .map {
+                            CategoryViewModel(id: category.id, name: category.name, movies: $0)
+                    }
                 })).merge()
                 
             }
